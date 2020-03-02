@@ -3,10 +3,10 @@
 export BASEHTML="/var/www/html"
 export DOCROOT="/var/www/html/web"
 export GRPID=$(stat -c "%g" /var/lib/mysql/)
-export DRUSH="/.composer/vendor/drush/drush/drush"
+export DRUSH="${DOCROOT}/vendor/bin/drush"
 export LOCAL_IP=$(hostname -I| awk '{print $1}')
 export HOSTIP=$(/sbin/ip route | awk '/default/ { print $3 }')
-export DRUPALVER=9
+export DRUPALVER=9.0.x
 echo "${HOSTIP} dockerhost" >> /etc/hosts
 echo "Started Container: $(date)"
 
@@ -28,7 +28,7 @@ if [ ! -f ${DOCROOT}/index.php ]; then
   # ${DRUSH} -vy dl drupal --default-major=${DRUPALVER} --drupal-project-rename="web"
   git clone --depth 1 --single-branch -b ${DRUPALVER} \
       https://git.drupalcode.org/project/drupal.git web;
-  cd web; composer install
+  cd web; composer require drush/drush:~10 drupal/console; composer install
   chmod a+w ${DOCROOT}/sites/default;
   mkdir ${DOCROOT}/sites/default/files;
   wget "http://www.adminer.org/latest.php" -O ${DOCROOT}/adminer.php
@@ -49,16 +49,16 @@ if ( ! grep -q 'database.*=>.*drupal' ${DOCROOT}/sites/default/settings.php 2>/d
   echo ${DRUPAL_PASSWORD} > /var/lib/mysql/mysql/drupal-db-pw.txt
   # Wait for mysql
   echo -n "Waiting for mysql "
-  while ! mysqladmin status >/dev/null 2>&1;
-  do echo -n . ; sleep 1;
+  while ! mysqladmin status >/dev/null 2>&1; do
+    echo -n . ; sleep 1;
   done;
   echo;
   # Create and change MySQL creds
   mysqladmin -u root password ${ROOT_PASSWORD} 2>/dev/null
   mysql -uroot -p${ROOT_PASSWORD} -e \
-        "GRANT ALL PRIVILEGES ON *.* TO 'debian-sys-maint'@'localhost' IDENTIFIED BY '$DEBPASS';" 2>/dev/null
+        "GRANT ALL PRIVILEGES ON *.* TO 'debian-sys-maint'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DEBPASS';" 2>/dev/null
   mysql -uroot -p${ROOT_PASSWORD} -e \
-        "CREATE DATABASE drupal; GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'%' IDENTIFIED BY '$DRUPAL_PASSWORD'; FLUSH PRIVILEGES;" 2>/dev/null
+        "CREATE DATABASE drupal; GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'%' IDENTIFIED WITH mysql_native_password BY '$DRUPAL_PASSWORD'; FLUSH PRIVILEGES;" 2>/dev/null
   cd ${DOCROOT}
   cp sites/default/default.settings.php sites/default/settings.php
   ${DRUSH} site-install standard -y --account-name=admin --account-pass=admin \
