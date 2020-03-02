@@ -5,10 +5,10 @@ drupal9-docker-app
 
 - [drupal9-docker-app](#drupal9-docker-app)
 - [What is this?](#what-is-this)
-- [Quick 3 step instructions for a Drupal 8 Trial Run:](#quick-3-step-instructions-for-a-drupal-8-trial-run)
+- [Quick 3 step instructions for a Drupal 9 Trial Run:](#quick-3-step-instructions-for-a-drupal-9-trial-run)
     - [1 - Install docker:](#1---install-docker)
     - [2 - Get the image and run it using port 80:](#2---get-the-image-and-run-it-using-port-80)
-    - [3 - Visit Drupal 8 in your browser](#3---visit-drupal-8-in-your-browser)
+    - [3 - Visit Drupal 9 in your browser](#3---visit-drupal-9-in-your-browser)
     - [Extra - Visualize MySQL tables in your browser](#extra---visualize-mysql-tables-in-your-browser)
 - [COMMUNITY CONTRIBUTIONS](#community-contributions)
     - [Using `drupal9_local.sh` or `drupal9_local.bat` for local development](#using-drupal9localsh-or-drupal9localbat-for-local-development)
@@ -30,20 +30,20 @@ drupal9-docker-app
 # What is this?
 
 This repo contains a Docker recipe for making a container
-running Drupal9, using Linux, Apache, MySQL, Memcache and SSH. 
+running Drupal9, using Linux, Apache, MySQL, Memcache and SSH.
 You can also use it on the Drupal Contribution Sprints for quickly starting
-working on your Drupal9 project. 
+working on your Drupal9 project.
 Note that, despite what other Docker solutions do, this will deliver you a fast, one-shot
 container with all necessary services, thus avoiding the need of container orchestration
 and the need of installing more software.
 
-- To just Trial Drupal 8 please [Install Docker](https://docs.docker.com/installation/).
+- To just Trial Drupal 9 please [Install Docker](https://docs.docker.com/installation/).
 
 - To use this repository as development environment, on Linux, MacOSX or Win10 make sure both bash+docker are installed.
 
 Feel free to test and report any issues.
 
-# Quick 3 step instructions for a Drupal 8 Trial Run:
+# Quick 3 step instructions for a Drupal 9 Trial Run:
 
 ## 1 - Install docker:
 
@@ -59,7 +59,7 @@ docker run -i -t -p 80:80 ricardoamaro/drupal9
 
 That's it!
 
-## 3 - Visit Drupal 8 in your browser
+## 3 - Visit Drupal 9 in your browser
 
 [http://localhost/](http://localhost/)
 
@@ -95,7 +95,7 @@ drupal9_local.bat
 For a fresh install or re-install of your existing code
 
 1. Remove the `local/data/` folder
-2. Create a `local/web/` folder with your Drupal 8 docroot  
+2. Create a `local/web/` folder with your Drupal 9 docroot
    eg. `composer create-project drupal-composer/drupal-project:8.x-dev local --no-interaction`
 3. Delete the `sites/default/settings.php` file
 4. Run `drupal9_local.sh` to linux/mac users or `drupal9_local.bat` to windows users
@@ -121,13 +121,15 @@ Using docker exec {ID} {COMMAND}, to run your own commands.
 ~$ docker exec mydrupal9  uptime
  10:02:59 up 16:41,  0 users,  load average: 1.17, 0.92, 0.76
 
-~$ docker exec mydrupal9 drush status | head
- Drupal version         :  8.5.3
- Site URI               :  http://default
- Database driver        :  mysql
- Database hostname      :  localhost
- Database port          :  3306
- Drupal bootstrap       :  Successful
+~$ docker exec mydrupal9 drush status
+ PHP binary    : /usr/bin/php7.3
+ PHP config    : /etc/php/7.3/cli/php.ini
+ PHP OS        : Linux
+ Drush script  : /.composer/vendor/drush/drush/drush
+ Drush version : 10.2.2
+ Drush temp    : /tmp
+ Drush configs : /.composer/vendor/drush/drush/drush.yml
+
  ```
 
 ## For older Drupal versions check:
