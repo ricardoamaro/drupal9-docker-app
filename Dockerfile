@@ -1,6 +1,7 @@
-FROM ubuntu:bionic
+FROM ubuntu:eoan
 MAINTAINER Ricardo Amaro <mail_at_ricardoamaro.com>
 ENV DEBIAN_FRONTEND noninteractive
+ARG DRUPALVER=9.0.x
 
 RUN apt-get update; \
   dpkg-divert --local --rename --add /sbin/initctl; \
@@ -28,7 +29,7 @@ RUN echo "export VISIBLE=now" >> /etc/profile; \
 
 # Install Composer, drush and drupal console
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-  && HOME=/ /usr/local/bin/composer global require drush/drush:~8 \
+  && HOME=/ /usr/local/bin/composer global require drush/drush:~10 \
   && ln -s /.composer/vendor/drush/drush/drush /usr/local/bin/drush \
   && curl https://drupalconsole.com/installer -L -o /usr/local/bin/drupal \
   && chmod +x /usr/local/bin/drupal \
@@ -46,15 +47,17 @@ ADD ./files/xdebug.ini /etc/php/7.2/mods-available/xdebug.ini
 RUN a2ensite 000-default ; a2enmod rewrite vhost_alias
 
 # Drupal new version, clean cache
-ADD https://updates.drupal.org/release-history/drupal/8.x /tmp/latest.xml
+ADD https://updates.drupal.org/release-history/drupal/${DRUPALVER} /tmp/latest.xml
+
+RUN echo "DRUPAL: ${DRUPALVER}"
 
 # Retrieve drupal & adminer
-RUN /bin/bash -t \
-    && cd /var/www/html; drush -v dl drupal --default-major=8  --drupal-project-rename="web" \
-    && cd /var/www/html; chmod a+w web/sites/default; \
-    mkdir web/sites/default/files; chown -R www-data:www-data /var/www/html/; \
-    chmod -R ug+w /var/www/html/ ; \
-    wget "http://www.adminer.org/latest.php" -O /var/www/html/web/adminer.php
+RUN cd /var/www/html; git clone --depth 1 --single-branch -b ${DRUPALVER} \
+  https://git.drupalcode.org/project/drupal.git web && cd web; composer install \
+  && cd /var/www/html; chmod a+w web/sites/default; \
+  mkdir web/sites/default/files; chown -R www-data:www-data /var/www/html/; \
+  chmod -R ug+w /var/www/html/ ; \
+  wget "http://www.adminer.org/latest.php" -O /var/www/html/web/adminer.php
 
 # Set some permissions
 RUN mkdir -p /var/run/mysqld; \

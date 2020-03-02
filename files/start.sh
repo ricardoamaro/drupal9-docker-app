@@ -25,8 +25,10 @@ supervisord -c /etc/supervisor/conf.d/supervisord.conf -l /tmp/supervisord.log
 if [ ! -f ${DOCROOT}/index.php ]; then
   echo "**** No Drupal found. Downloading latest to ${DOCROOT}/ ****"
   cd ${BASEHTML};
-  ${DRUSH} -vy dl drupal \
-           --default-major=${DRUPALVER} --drupal-project-rename="web"
+  # ${DRUSH} -vy dl drupal --default-major=${DRUPALVER} --drupal-project-rename="web"
+  git clone --depth 1 --single-branch -b ${DRUPALVER} \
+      https://git.drupalcode.org/project/drupal.git web;
+  cd web; composer install
   chmod a+w ${DOCROOT}/sites/default;
   mkdir ${DOCROOT}/sites/default/files;
   wget "http://www.adminer.org/latest.php" -O ${DOCROOT}/adminer.php
