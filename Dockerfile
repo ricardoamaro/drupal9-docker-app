@@ -30,6 +30,20 @@ RUN echo "export VISIBLE=now" >> /etc/profile; \
 # Install Composer, drush and drupal console
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Drupal new version, clean cache
+ADD https://updates.drupal.org/release-history/drupal/${DRUPALVER} /tmp/latest.xml
+
+# Retrieve drupal & adminer
+# TODO: also require drupal/memcache
+RUN cd /var/www/html; \
+  git clone --depth 1 --single-branch -b ${DRUPALVER} https://git.drupalcode.org/project/drupal.git web \
+  && cd web; composer require drush/drush:~10; composer install  \
+  && php --version; composer --version; vendor/bin/drush --version; vendor/bin/drush status \
+  && cd /var/www/html; chmod a+w web/sites/default; \
+  mkdir web/sites/default/files; chown -R www-data:www-data /var/www/html/; \
+  chmod -R ug+w /var/www/html/ ; \
+  wget "http://www.adminer.org/latest.php" -O /var/www/html/web/adminer.php
+
 # Install supervisor
 COPY ./files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./files/start.sh /start.sh
@@ -40,19 +54,6 @@ RUN rm /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/
 ADD ./files/000-default.conf /etc/apache2/sites-available/000-default.conf
 ADD ./files/xdebug.ini /etc/php/7.3/mods-available/xdebug.ini
 RUN a2ensite 000-default ; a2enmod rewrite vhost_alias
-
-# Drupal new version, clean cache
-ADD https://updates.drupal.org/release-history/drupal/${DRUPALVER} /tmp/latest.xml
-
-# Retrieve drupal & adminer
-RUN cd /var/www/html; \
-  git clone --depth 1 --single-branch -b ${DRUPALVER} https://git.drupalcode.org/project/drupal.git web \
-  && cd web; composer require drush/drush:~10; composer install  \
-  && php --version; composer --version; vendor/bin/drush --version; vendor/bin/drush status \
-  && cd /var/www/html; chmod a+w web/sites/default; \
-  mkdir web/sites/default/files; chown -R www-data:www-data /var/www/html/; \
-  chmod -R ug+w /var/www/html/ ; \
-  wget "http://www.adminer.org/latest.php" -O /var/www/html/web/adminer.php
 
 # Set some permissions
 RUN mkdir -p /var/run/mysqld; \

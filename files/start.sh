@@ -28,7 +28,8 @@ if [ ! -f ${DOCROOT}/index.php ]; then
   # ${DRUSH} -vy dl drupal --default-major=${DRUPALVER} --drupal-project-rename="web"
   git clone --depth 1 --single-branch -b ${DRUPALVER} \
       https://git.drupalcode.org/project/drupal.git web;
-  cd web; composer require drush/drush:~10 drupal/console; composer install
+  # TODO: also require drupal/memcache
+  cd web; composer require drush/drush:~10; composer install
   chmod a+w ${DOCROOT}/sites/default;
   mkdir ${DOCROOT}/sites/default/files;
   wget "http://www.adminer.org/latest.php" -O ${DOCROOT}/adminer.php
@@ -55,18 +56,20 @@ if ( ! grep -q 'database.*=>.*drupal' ${DOCROOT}/sites/default/settings.php 2>/d
   echo;
   # Create and change MySQL creds
   mysqladmin -u root password ${ROOT_PASSWORD} 2>/dev/null
-  mysql -uroot -p${ROOT_PASSWORD} -e \
-        "GRANT ALL PRIVILEGES ON *.* TO 'debian-sys-maint'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DEBPASS';" 2>/dev/null
-  mysql -uroot -p${ROOT_PASSWORD} -e \
-        "CREATE DATABASE drupal; GRANT ALL PRIVILEGES ON drupal.* TO 'drupal'@'%' IDENTIFIED WITH mysql_native_password BY '$DRUPAL_PASSWORD'; FLUSH PRIVILEGES;" 2>/dev/null
+  echo -e "[client]\npassword=${ROOT_PASSWORD}\n" > /root/.my.cnf
+  mysql -e \
+        "CREATE USER 'debian-sys-maint'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DEBPASS}';
+         GRANT ALL ON *.* TO 'debian-sys-maint'@'localhost';
+         CREATE DATABASE drupal;
+         CREATE USER 'drupal'@'%' IDENTIFIED WITH mysql_native_password BY '${DRUPAL_PASSWORD}';
+         GRANT ALL ON drupal.* TO 'drupal'@'%';
+         FLUSH PRIVILEGES;"
   cd ${DOCROOT}
   cp sites/default/default.settings.php sites/default/settings.php
   ${DRUSH} site-install standard -y --account-name=admin --account-pass=admin \
            --db-url="mysql://drupal:${DRUPAL_PASSWORD}@localhost:3306/drupal" \
            --site-name="Drupal9 docker App" | grep -v 'continue?' 2>/dev/null
-  # TODO: move this to composer.json
-  ${DRUSH} -y dl memcache >/dev/null 2>&1
-  ${DRUSH} -y en memcache | grep -v 'continue?' | grep -v error 2>/dev/null
+  #${DRUSH} -y en memcache | grep -v 'continue?' | grep -v error 2>/dev/null
 else
   echo "**** ${DOCROOT}/sites/default/settings.php database found ****"
   ROOT_PASSWORD=$(cat /var/lib/mysql/mysql/mysql-root-pw.txt)
