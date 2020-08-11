@@ -6,7 +6,7 @@ export GRPID=$(stat -c "%g" /var/lib/mysql/)
 export DRUSH="${DOCROOT}/vendor/bin/drush"
 export LOCAL_IP=$(hostname -I| awk '{print $1}')
 export HOSTIP=$(/sbin/ip route | awk '/default/ { print $3 }')
-export DRUPALVER=9.0.x
+export DRUPALVER=9.1.x
 echo "${HOSTIP} dockerhost" >> /etc/hosts
 echo "Started Container: $(date)"
 

@@ -1,16 +1,22 @@
 FROM ubuntu:20.04
 MAINTAINER Ricardo Amaro <mail_at_ricardoamaro.com>
 ENV DEBIAN_FRONTEND noninteractive
-ARG DRUPALVER=9.0.x
+ARG DRUPALVER=9.1.x
 
 RUN apt-get update; \
   dpkg-divert --local --rename --add /sbin/initctl; \
   ln -sf /bin/true /sbin/initctl; \
+  echo "postfix postfix/mailname string drupal-mail" | debconf-set-selections; \
+  echo "postfix postfix/main_mailer_type string 'Local only'" | debconf-set-selections; \
   apt-get -y install git curl wget supervisor openssh-server locales \
   mysql-client mysql-server apache2 pwgen vim-tiny mc iproute2 python-setuptools \
   unison netcat net-tools memcached nano libapache2-mod-php php php-cli php-common \
   php-gd php-json php-mbstring php-xdebug php-mysql php-opcache php-curl \
-  php-readline php-xml php-memcached php-oauth php-bcmath; \
+  php-readline php-xml php-memcached php-oauth php-bcmath \
+  postfix mailutils; \
+  echo site: root >> /etc/aliases; \
+  echo admin: root >> /etc/aliases; \
+  newaliases; \
   apt-get clean; \
   apt-get autoclean; \
   apt-get -y autoremove; \
@@ -37,7 +43,7 @@ ADD https://updates.drupal.org/release-history/drupal/${DRUPALVER} /tmp/latest.x
 # TODO: also require drupal/memcache
 RUN cd /var/www/html; \
   git clone --depth 1 --single-branch -b ${DRUPALVER} https://git.drupalcode.org/project/drupal.git web \
-  && cd web; composer require drush/drush:dev-master; composer install  \
+  && cd web; composer require drush/drush:~10; composer install  \
   && php --version; composer --version; vendor/bin/drush --version; vendor/bin/drush status \
   && cd /var/www/html; chmod a+w web/sites/default; \
   mkdir web/sites/default/files; chown -R www-data:www-data /var/www/html/; \
