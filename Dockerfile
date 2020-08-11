@@ -1,4 +1,4 @@
-FROM ubuntu:eoan
+FROM ubuntu:20.04
 MAINTAINER Ricardo Amaro <mail_at_ricardoamaro.com>
 ENV DEBIAN_FRONTEND noninteractive
 ARG DRUPALVER=9.0.x
@@ -37,7 +37,7 @@ ADD https://updates.drupal.org/release-history/drupal/${DRUPALVER} /tmp/latest.x
 # TODO: also require drupal/memcache
 RUN cd /var/www/html; \
   git clone --depth 1 --single-branch -b ${DRUPALVER} https://git.drupalcode.org/project/drupal.git web \
-  && cd web; composer require drush/drush:~10; composer install  \
+  && cd web; composer require drush/drush:dev-master; composer install  \
   && php --version; composer --version; vendor/bin/drush --version; vendor/bin/drush status \
   && cd /var/www/html; chmod a+w web/sites/default; \
   mkdir web/sites/default/files; chown -R www-data:www-data /var/www/html/; \
@@ -52,7 +52,7 @@ COPY ./files/foreground.sh /etc/apache2/foreground.sh
 # Apache & Xdebug
 RUN rm /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/*
 ADD ./files/000-default.conf /etc/apache2/sites-available/000-default.conf
-ADD ./files/xdebug.ini /etc/php/7.3/mods-available/xdebug.ini
+ADD ./files/xdebug.ini /etc/php/*/mods-available/xdebug.ini
 RUN a2ensite 000-default ; a2enmod rewrite vhost_alias
 
 # Set some permissions
