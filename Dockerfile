@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 MAINTAINER Ricardo Amaro <mail_at_ricardoamaro.com>
 ENV DEBIAN_FRONTEND noninteractive
-ARG DRUPALVER=9.1.x
+ARG DRUPALVER=9
 
 RUN apt-get update; \
   dpkg-divert --local --rename --add /sbin/initctl; \
@@ -42,7 +42,8 @@ ADD https://updates.drupal.org/release-history/drupal/${DRUPALVER} /tmp/latest.x
 # Retrieve drupal & adminer
 # TODO: also require drupal/memcache
 RUN cd /var/www/html; \
-  git clone --depth 1 --single-branch -b ${DRUPALVER} https://git.drupalcode.org/project/drupal.git web \
+  DV=$(curl -s https://git.drupalcode.org/project/drupal/-/tags?format=atom | grep -e '<title>' | grep -Eo '[0-9\.]+'|sort -nr | grep ^${DRUPALVER} | head -n1) \
+  && git clone --depth 1 --single-branch -b ${DV} https://git.drupalcode.org/project/drupal.git web \
   && cd web; composer require drush/drush:~10; composer install  \
   && php --version; composer --version; vendor/bin/drush --version; vendor/bin/drush status \
   && cd /var/www/html; chmod a+w web/sites/default; \
