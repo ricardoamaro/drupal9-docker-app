@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 MAINTAINER Ricardo Amaro <mail_at_ricardoamaro.com>
 ENV DEBIAN_FRONTEND noninteractive
-ARG DRUPALVER=9
+ENV DRUPALVER=9
 
 RUN apt-get update; \
   dpkg-divert --local --rename --add /sbin/initctl; \
