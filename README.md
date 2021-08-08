@@ -133,8 +133,9 @@ Using docker exec {ID} {COMMAND}, to run your own commands.
  ```
 
 ## For older Drupal versions check:
-https://github.com/ricardoamaro/drupal7-docker-app
-https://github.com/ricardoamaro/drupal6-docker-app
+[drupal7-docker-app](https://github.com/ricardoamaro/drupal7-docker-app)
+[drupal8-docker-app](https://github.com/ricardoamaro/drupal8-docker-app)
+[drupal9-docker-app](https://github.com/ricardoamaro/drupal6-docker-app)
 
 ## You can also clone this repo somewhere and build it,
 ```
